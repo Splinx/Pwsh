@@ -1,4 +1,4 @@
-#Requires -Modules Selenium
+#Requires -Module Selenium
 #Requires -Module PoshGram
 
 ##########################################################################################################
