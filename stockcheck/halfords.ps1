@@ -15,10 +15,13 @@
 
 Param(
    [Parameter(Mandatory=$true)]  [string]$postcode,
+   [Parameter(Mandatory=$true)] [string]$url,
+   [Parameter(Mandatory=$false)] [int]$maxRetry = 3,
+   [Parameter(Mandatory=$false)] [int]$retrySeconds = 10,
    [Parameter(Mandatory=$false)] [string]$telegramBotToken, #https://api.telegram.org/bot{telegramBotToken}/getUpdates
    [Parameter(Mandatory=$false)] [string]$telegramGroupChat,
-   [Parameter(Mandatory=$false)] [int]$maxRetry = 3,
-   [Parameter(Mandatory=$false)] [int]$retrySeconds = 10
+   [Parameter(Mandatory=$false)] [bool]$telegramEnabled = 1, #Enabvled by default, disabled anyway if token/chatid not supplied
+   [Parameter(Mandatory=$false)] [bool]$telegramNotInStock = 0 #by default, do not send a telegram when the item is NO IN STOCK
 )
 
 function get_dateString {
@@ -27,13 +30,17 @@ function get_dateString {
 
 ##########################################################################################################
 
-$url = "https://www.halfords.com/bikes/kids-bikes/apollo-craze-junior-mountain-bike---24in-wheel-400484.html"
+#BIKE WE WANT
+#https://www.halfords.com/bikes/kids-bikes/apollo-craze-junior-mountain-bike---24in-wheel-400484.html
+#IN STOCK TESTS
+#https://www.halfords.com/bikes/kids-bikes/carrera-luna-mountain-bike---24in-wheel-400542.html
+
+##########################################################################################################
+
 $checkInstall = $true
 $binaries = 'C:\selenium'
-$telegramEnabled = $true
-$telegramNotInStock = $false #by default, do not send a telegram when the item is NO IN STOCK
 
-if ($null -eq $telegramBotToken -or $null -eq $telegramGroupChat){
+if ($telegramBotToken.Trim() -eq "" -or $telegramGroupChat.Trim() -eq ""){
     $telegramEnabled = $false
 }
 
@@ -143,7 +150,7 @@ do {
 
     }
     elseif ( $ChromeDriver.FindElementsByClassName("b-product-home__error").Count -gt 0) {
-        $tmpMsg = "Item not available for purchase`n$($url)" 
+        $tmpMsg = "Item not available for purchase at $($postcode).`n$($url)" 
         Write-Host  $tmpMsg  -ForegroundColor Red    
 
         if ($telegramEnabled -and $telegramNotInStock) {
